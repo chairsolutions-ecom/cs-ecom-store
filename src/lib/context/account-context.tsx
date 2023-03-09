@@ -4,7 +4,6 @@ import { MEDUSA_BACKEND_URL, medusaClient } from "@lib/config"
 import { Customer } from "@medusajs/medusa"
 import { useMutation } from "@tanstack/react-query"
 import { useMeCustomer } from "medusa-react"
-import { useRouter } from "next/router"
 import React, { createContext, useCallback, useContext, useState, useEffect } from "react"
 
 export enum LOGIN_VIEW {

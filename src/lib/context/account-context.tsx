@@ -1,7 +1,6 @@
 import axios from "axios"
 import {useRouter} from "next/router"
 import { MEDUSA_BACKEND_URL, medusaClient } from "@lib/config"
-import { medusaClient } from "@lib/config"
 import { Customer } from "@medusajs/medusa"
 import { useMutation } from "@tanstack/react-query"
 import { useMeCustomer } from "medusa-react"

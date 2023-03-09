@@ -149,14 +149,48 @@ export const StoreProvider = ({ children }: StoreProps) => {
     }
   }
 
+  // const createNewCart = async (regionId?: string) => {
+  //   await createCart.mutateAsync(
+  //     { region_id: regionId },
+  //     {
+  //       onSuccess: ({ cart }) => {
+  //         setCart(cart)
+  //         storeCart(cart.id)
+  //         ensureRegion(cart.region, cart.shipping_address?.country_code)
+  //       },
+  //       onError: (error) => {
+  //         if (process.env.NODE_ENV === "development") {
+  //           console.error(error)
+  //         }
+  //       },
+  //     }
+  //   )
+  // }
+
   const createNewCart = async (regionId?: string) => {
+    const cartData: {
+      region_id?: string,
+      sales_channel_id?: string
+    } = { region_id: regionId }
+
+    if (process.env.NEXT_PUBLIC_SALES_CHANNEL_ID) {
+      //check if customer is b2b
+      const { data } = await axios.get(`${MEDUSA_BACKEND_URL}/store/customers/is-b2b`, {
+        withCredentials: true
+      })
+
+      if (data.is_b2b) {
+        cartData.sales_channel_id = process.env.NEXT_PUBLIC_SALES_CHANNEL_ID
+      }
+    }
+
     await createCart.mutateAsync(
-      { region_id: regionId },
+      cartData,
       {
         onSuccess: ({ cart }) => {
           setCart(cart)
           storeCart(cart.id)
-          ensureRegion(cart.region, cart.shipping_address?.country_code)
+          ensureRegion(cart.region)
         },
         onError: (error) => {
           if (process.env.NODE_ENV === "development") {
@@ -191,6 +225,40 @@ export const StoreProvider = ({ children }: StoreProps) => {
     )
   }
 
+  // useEffect(() => {
+  //   const ensureCart = async () => {
+  //     const cartId = getCart()
+  //     const region = getRegion()
+
+  //     if (cartId) {
+  //       const cartRes = await medusaClient.carts
+  //         .retrieve(cartId)
+  //         .then(({ cart }) => {
+  //           return cart
+  //         })
+  //         .catch(async (_) => {
+  //           return null
+  //         })
+
+  //       if (!cartRes || cartRes.completed_at) {
+  //         deleteCart()
+  //         deleteRegion()
+  //         await createNewCart()
+  //         return
+  //       }
+
+  //       setCart(cartRes)
+  //       ensureRegion(cartRes.region)
+  //     } else {
+  //       await createNewCart(region?.regionId)
+  //     }
+  //   }
+
+  //   if (!IS_SERVER && !cart?.id) {
+  //     ensureCart()
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
   useEffect(() => {
     const ensureCart = async () => {
       const cartId = getCart()
@@ -199,7 +267,21 @@ export const StoreProvider = ({ children }: StoreProps) => {
       if (cartId) {
         const cartRes = await medusaClient.carts
           .retrieve(cartId)
-          .then(({ cart }) => {
+          .then(async ({ cart }) => {
+            if (process.env.NEXT_PUBLIC_SALES_CHANNEL_ID && cart.sales_channel_id !== process.env.NEXT_PUBLIC_SALES_CHANNEL_ID) {
+              //check if b2b customer
+              const { data } = await axios.get(`${MEDUSA_BACKEND_URL}/store/customers/is-b2b`, {
+                withCredentials: true
+              })
+              if (data.is_b2b) {
+                //update cart's sales channel
+                const response = await medusaClient.carts.update(cart.id, {
+                  sales_channel_id: process.env.NEXT_PUBLIC_SALES_CHANNEL_ID
+                })
+
+                return response.cart
+              }
+            }
             return cart
           })
           .catch(async (_) => {
@@ -208,8 +290,7 @@ export const StoreProvider = ({ children }: StoreProps) => {
 
         if (!cartRes || cartRes.completed_at) {
           deleteCart()
-          deleteRegion()
-          await createNewCart()
+          await createNewCart(region?.regionId)
           return
         }
 
@@ -225,6 +306,7 @@ export const StoreProvider = ({ children }: StoreProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  
 
   const addItem = ({
     variantId,

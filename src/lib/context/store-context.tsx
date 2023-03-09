@@ -9,6 +9,7 @@ import {
 } from "medusa-react"
 import React, { useEffect, useState } from "react"
 import { useCartDropdown } from "./cart-dropdown-context"
+import axios from "axios"
 
 interface VariantInfoProps {
   variantId: string

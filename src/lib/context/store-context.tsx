@@ -1,4 +1,5 @@
-import { medusaClient } from "@lib/config"
+import axios from "axios"
+import { MEDUSA_BACKEND_URL, medusaClient } from "@lib/config"
 import { handleError } from "@lib/util/handle-error"
 import { Region } from "@medusajs/medusa"
 import {
@@ -7,9 +8,9 @@ import {
   useDeleteLineItem,
   useUpdateLineItem,
 } from "medusa-react"
-import React, { useEffect, useState } from "react"
+import React, { createContext, useCallback, useContext,useEffect, useState } from "react"
 import { useCartDropdown } from "./cart-dropdown-context"
-import axios from "axios"
+
 
 interface VariantInfoProps {
   variantId: string

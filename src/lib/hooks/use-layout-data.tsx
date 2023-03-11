@@ -56,12 +56,13 @@ const fetchFeaturedProducts = async (
       limit: 4,
       cart_id: cartId,
     })
-    .then(({ products }) => products)
+    .then(({ products } : any) => products)
     .catch((_) => [] as Product[])
 
+  console.log('products', products)  
   return products
-    .filter((p) => !!p.variants)
-    .map((p) => {
+    .filter((p : any) => !!p.variants)
+    .map((p: any) => {
       const variants = p.variants as CalculatedVariant[]
 
       const cheapestVariant = variants.reduce((acc, curr) => {

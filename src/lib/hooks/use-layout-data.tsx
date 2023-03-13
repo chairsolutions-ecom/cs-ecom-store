@@ -65,7 +65,7 @@ const fetchFeaturedProducts = async (
         return curr
       }
       return acc
-    })
+    },0)
 
     return {
       id: p.id,

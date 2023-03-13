@@ -58,9 +58,12 @@ const fetchFeaturedProducts = async (
     })
     .then(({ products } : any) => products)
     .catch((_) => [] as Product[])
-     
 
-  const newProducts = await products
+  let newProducts = await products 
+  console.log('new products', newProducts)
+    
+
+  return newProducts
     .filter((p : any) => !!p.variants)
     .map((p: any) => {
       const variants = p.variants as CalculatedVariant[]
@@ -104,8 +107,6 @@ const fetchFeaturedProducts = async (
       }
     })
 
-    console.log('new products', newProducts)
-    return newProducts
 }
 
 export const useFeaturedProductsQuery = () => {

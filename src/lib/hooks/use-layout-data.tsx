@@ -56,11 +56,9 @@ const fetchFeaturedProducts = async (
       limit: 4,
       cart_id: cartId,
     })
-    // .then(({ products } : any) => products)
-    // .catch((_) => [] as Product[])
-  ({products}) => await products
-    .catch((error) => {})
-    
+    .then(({ products } : any) => products)
+    .catch((_) => [] as Product[])
+     
 
   console.log('products', products)  
   return products

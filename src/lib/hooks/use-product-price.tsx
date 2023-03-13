@@ -36,7 +36,7 @@ const useProductPrice = ({ id, variantId }: useProductPriceProps) => {
 
     const cheapestVariant = variants.reduce((prev, curr) => {
       return prev.calculated_price < curr.calculated_price ? prev : curr
-    })
+    },0)
 
     return {
       calculated_price: formatAmount({

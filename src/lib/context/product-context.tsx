@@ -24,6 +24,7 @@ interface ProductContext {
   increaseQuantity: () => void
   decreaseQuantity: () => void
   addToCart: () => void
+  setQuantity: (quantity: number) => void
 }
 
 const ProductActionContext = createContext<ProductContext | null>(null)
@@ -161,6 +162,7 @@ export const ProductProvider = ({
         decreaseQuantity,
         increaseQuantity,
         formattedPrice,
+        setQuantity,
       }}
     >
       {children}

@@ -63,7 +63,7 @@ const ProductInfoTab = ({ product }: ProductTabsProps) => {
         <div className="flex flex-col gap-y-4">
           <div>
             <span className="font-semibold">Material</span>
-            <p>{product.material ? product.material : "-"}</p>
+            <p>{product.origin_country ? product.origin_country : "-"}</p>
           </div>
           <div>
             <span className="font-semibold">Country of origin</span>

@@ -7,7 +7,7 @@ import Button from "@modules/common/components/button"
 import SkeletonProductPreview from "@modules/skeletons/components/skeleton-product-preview"
 import { useCart } from "medusa-react"
 import { useMemo } from "react"
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "react-query"
 import ProductPreview from "../product-preview"
 
 type RelatedProductsProps = {
@@ -26,6 +26,10 @@ const RelatedProducts = ({ product }: RelatedProductsProps) => {
 
     if (product.collection_id) {
       params.collection_id = [product.collection_id]
+    }
+
+    if (product.type) {
+      params.type = product.type.id
     }
 
     if (product.tags) {

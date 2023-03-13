@@ -1,7 +1,4 @@
-import { canBuy } from "@lib/util/can-buy"
-import { findCheapestPrice } from "@lib/util/prices"
-import isEqual from "lodash/isEqual"
-import { formatVariantPrice, useCart } from "medusa-react"
+import { Product, Variant } from "types/medusa"
 import React, {
   createContext,
   useContext,
@@ -9,7 +6,11 @@ import React, {
   useMemo,
   useState,
 } from "react"
-import { Product, Variant } from "types/medusa"
+import { formatVariantPrice, useCart } from "medusa-react"
+
+import { canBuy } from "@lib/util/can-buy"
+import { findCheapestPrice } from "@lib/util/prices"
+import isEqual from "lodash/isEqual"
 import { useStore } from "./store-context"
 
 interface ProductContext {
@@ -23,7 +24,7 @@ interface ProductContext {
   updateOptions: (options: Record<string, string>) => void
   increaseQuantity: () => void
   decreaseQuantity: () => void
-  addToCart: () => void
+  addToCart: () => void,
   setQuantity: (quantity: number) => void
 }
 
@@ -162,7 +163,7 @@ export const ProductProvider = ({
         decreaseQuantity,
         increaseQuantity,
         formattedPrice,
-        setQuantity,
+        setQuantity
       }}
     >
       {children}

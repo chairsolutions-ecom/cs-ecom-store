@@ -1,15 +1,17 @@
 import { Popover, Transition } from "@headlessui/react"
-import { useCartDropdown } from "@lib/context/cart-dropdown-context"
-import { useStore } from "@lib/context/store-context"
-import useEnrichedLineItems from "@lib/hooks/use-enrich-line-items"
+import { formatAmount, useCart } from "medusa-react"
+
 import Button from "@modules/common/components/button"
+import { CalculatedVariant } from "types/medusa"
+import { Fragment } from "react"
 import LineItemOptions from "@modules/common/components/line-item-options"
 import LineItemPrice from "@modules/common/components/line-item-price"
-import Trash from "@modules/common/icons/trash"
-import Thumbnail from "@modules/products/components/thumbnail"
-import { formatAmount, useCart } from "medusa-react"
 import Link from "next/link"
-import { Fragment } from "react"
+import Thumbnail from "@modules/products/components/thumbnail"
+import Trash from "@modules/common/icons/trash"
+import { useCartDropdown } from "@lib/context/cart-dropdown-context"
+import useEnrichedLineItems from "@lib/hooks/use-enrich-line-items"
+import { useStore } from "@lib/context/store-context"
 
 const CartDropdown = () => {
   const { cart, totalItems } = useCart()
@@ -72,7 +74,8 @@ const CartDropdown = () => {
                               <div className="flex justify-end">
                                 <LineItemPrice
                                   region={cart.region}
-                                  item={item}
+                                  variant={item.variant as CalculatedVariant}
+                                  quantity={item.quantity}
                                   style="tight"
                                 />
                               </div>

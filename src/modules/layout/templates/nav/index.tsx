@@ -1,13 +1,14 @@
-import { useMobileMenu } from "@lib/context/mobile-menu-context"
-import Hamburger from "@modules/common/components/hamburger"
-import CartDropdown from "@modules/layout/components/cart-dropdown"
-import DropdownMenu from "@modules/layout/components/dropdown-menu"
-import MobileMenu from "@modules/mobile-menu/templates"
-import DesktopSearchModal from "@modules/search/templates/desktop-search-modal"
-import clsx from "clsx"
-import Link from "next/link"
-import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
+
+import CartDropdown from "@modules/layout/components/cart-dropdown"
+import DesktopSearchModal from "@modules/search/templates/desktop-search-modal"
+import DropdownMenu from "@modules/layout/components/dropdown-menu"
+import Hamburger from "@modules/common/components/hamburger"
+import Link from "next/link"
+import MobileMenu from "@modules/mobile-menu/templates"
+import clsx from "clsx"
+import { useMobileMenu } from "@lib/context/mobile-menu-context"
+import { useRouter } from "next/router"
 
 const Nav = () => {
   const { pathname } = useRouter()

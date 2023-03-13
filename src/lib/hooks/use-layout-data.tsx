@@ -1,8 +1,8 @@
 import { medusaClient } from "@lib/config"
 import { getPercentageDiff } from "@lib/util/get-precentage-diff"
 import { Product, ProductCollection, Region } from "@medusajs/medusa"
-import { useQuery } from "@tanstack/react-query"
 import { formatAmount, useCart } from "medusa-react"
+import { useQuery } from "react-query"
 import { ProductPreviewType } from "types/global"
 import { CalculatedVariant } from "types/medusa"
 
@@ -36,9 +36,7 @@ const fetchCollectionData = async (): Promise<LayoutCollection[]> => {
 }
 
 export const useNavigationCollections = () => {
-  const queryResults = useQuery({
-    queryFn: fetchCollectionData,
-    queryKey: ["navigation_collections"],
+  const queryResults = useQuery("navigation_collections", fetchCollectionData, {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   })
@@ -56,57 +54,43 @@ const fetchFeaturedProducts = async (
       limit: 4,
       cart_id: cartId,
     })
-    .then(({ products } : any) => products)
+    .then(({ products }) => products)
     .catch((_) => [] as Product[])
 
-  let newProducts = await products 
-  console.log('new products', newProducts)
-    
+  return products.map((p) => {
+    const variants = p.variants as CalculatedVariant[]
 
-  return newProducts
-    .filter((p : any) => !!p.variants)
-    .map((p: any) => {
-      const variants = p.variants as CalculatedVariant[]
-
-      const cheapestVariant = variants.reduce((acc, curr) => {
-        if (acc.calculated_price > curr.calculated_price) {
-          return curr
-        }
-        return acc
-      }, variants[0])
-
-      return {
-        id: p.id,
-        title: p.title,
-        handle: p.handle,
-        thumbnail: p.thumbnail,
-        price: cheapestVariant
-          ? {
-              calculated_price: formatAmount({
-                amount: cheapestVariant.calculated_price,
-                region: region,
-                includeTaxes: false,
-              }),
-              original_price: formatAmount({
-                amount: cheapestVariant.original_price,
-                region: region,
-                includeTaxes: false,
-              }),
-              difference: getPercentageDiff(
-                cheapestVariant.original_price,
-                cheapestVariant.calculated_price
-              ),
-              price_type: cheapestVariant.calculated_price_type,
-            }
-          : {
-              calculated_price: "N/A",
-              original_price: "N/A",
-              difference: "N/A",
-              price_type: "default",
-            },
+    const cheapestVariant = variants.reduce((acc, curr) => {
+      if (acc.calculated_price > curr.calculated_price) {
+        return curr
       }
+      return acc
     })
 
+    return {
+      id: p.id,
+      title: p.title,
+      handle: p.handle,
+      thumbnail: p.thumbnail,
+      price: {
+        calculated_price: formatAmount({
+          amount: cheapestVariant.calculated_price,
+          region: region,
+          includeTaxes: false,
+        }),
+        original_price: formatAmount({
+          amount: cheapestVariant.original_price,
+          region: region,
+          includeTaxes: false,
+        }),
+        difference: getPercentageDiff(
+          cheapestVariant.original_price,
+          cheapestVariant.calculated_price
+        ),
+        price_type: cheapestVariant.calculated_price_type,
+      },
+    }
+  })
 }
 
 export const useFeaturedProductsQuery = () => {

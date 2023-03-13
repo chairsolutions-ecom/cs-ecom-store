@@ -1,10 +1,11 @@
-import axios from "axios"
-import {useRouter} from "next/router"
 import { MEDUSA_BACKEND_URL, medusaClient } from "@lib/config"
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
+
 import { Customer } from "@medusajs/medusa"
-import { useMutation } from "@tanstack/react-query"
+import axios from "axios"
 import { useMeCustomer } from "medusa-react"
-import React, { createContext, useCallback, useContext, useState, useEffect } from "react"
+import { useMutation } from "react-query"
+import { useRouter } from "next/router"
 
 export enum LOGIN_VIEW {
   SIGN_IN = "sign-in",
@@ -24,7 +25,7 @@ interface AccountContext {
 const AccountContext = createContext<AccountContext | null>(null)
 
 interface AccountProviderProps {
-  children?: React.ReactNode 
+  children?: React.ReactNode
 }
 
 const handleDeleteSession = () => {
@@ -32,9 +33,7 @@ const handleDeleteSession = () => {
 }
 
 export const AccountProvider = ({ children }: AccountProviderProps) => {
-  
   const [is_b2b, setIsB2b] = useState(false)
-  
   const {
     customer,
     isLoading: retrievingCustomer,
@@ -47,26 +46,9 @@ export const AccountProvider = ({ children }: AccountProviderProps) => {
 
   const checkSession = useCallback(() => {
     if (!customer && !retrievingCustomer) {
-      // router.push("/account/login")
       router.push(router.pathname.includes("wholesale") ? "/wholesale/account/login" : "/account/login")
     }
   }, [customer, retrievingCustomer, router])
-
-  const useDeleteSession = useMutation({
-    mutationFn: handleDeleteSession,
-    mutationKey: ["delete-session"],
-  })
-
-  const handleLogout = () => {
-    useDeleteSession.mutate(undefined, {
-      onSuccess: () => {
-        remove()
-        loginView[1](LOGIN_VIEW.SIGN_IN)
-        router.push("/")
-        setIsB2b(false)
-      },
-    })
-  }
 
   const checkB2b = useCallback(async () => {
     if (customer) {
@@ -78,11 +60,24 @@ export const AccountProvider = ({ children }: AccountProviderProps) => {
     } else {
       setIsB2b(false)
     }
-  },[customer])
+  }, [customer])
+
+  const useDeleteSession = useMutation("delete-session", handleDeleteSession)
 
   useEffect(() => {
     checkB2b()
   }, [checkB2b])
+
+  const handleLogout = () => {
+    useDeleteSession.mutate(undefined, {
+      onSuccess: () => {
+        remove()
+        loginView[1](LOGIN_VIEW.SIGN_IN)
+        router.push("/")
+        setIsB2b(false)
+      },
+    })
+  }
 
   return (
     <AccountContext.Provider

@@ -1,16 +1,16 @@
-import axios from "axios"
 import { MEDUSA_BACKEND_URL, medusaClient } from "@lib/config"
-import { handleError } from "@lib/util/handle-error"
-import { Region } from "@medusajs/medusa"
+import React, { useEffect, useState } from "react"
 import {
   useCart,
   useCreateLineItem,
   useDeleteLineItem,
   useUpdateLineItem,
 } from "medusa-react"
-import React, { createContext, useCallback, useContext,useEffect, useState } from "react"
-import { useCartDropdown } from "./cart-dropdown-context"
 
+import { Region } from "@medusajs/medusa"
+import axios from "axios"
+import { handleError } from "@lib/util/handle-error"
+import { useCartDropdown } from "./cart-dropdown-context"
 
 interface VariantInfoProps {
   variantId: string
@@ -47,7 +47,6 @@ interface StoreProps {
 
 const IS_SERVER = typeof window === "undefined"
 const CART_KEY = "medusa_cart_id"
-const REGION_KEY = "medusa_region"
 
 export const StoreProvider = ({ children }: StoreProps) => {
   const { cart, setCart, createCart, updateCart } = useCart()
@@ -60,7 +59,7 @@ export const StoreProvider = ({ children }: StoreProps) => {
   const storeRegion = (regionId: string, countryCode: string) => {
     if (!IS_SERVER) {
       localStorage.setItem(
-        REGION_KEY,
+        "medusa_region",
         JSON.stringify({ regionId, countryCode })
       )
 
@@ -70,7 +69,7 @@ export const StoreProvider = ({ children }: StoreProps) => {
 
   useEffect(() => {
     if (!IS_SERVER) {
-      const storedRegion = localStorage.getItem(REGION_KEY)
+      const storedRegion = localStorage.getItem("medusa_region")
       if (storedRegion) {
         const { countryCode } = JSON.parse(storedRegion)
         setCountryCode(countryCode)
@@ -80,7 +79,7 @@ export const StoreProvider = ({ children }: StoreProps) => {
 
   const getRegion = () => {
     if (!IS_SERVER) {
-      const region = localStorage.getItem(REGION_KEY)
+      const region = localStorage.getItem("medusa_region")
       if (region) {
         return JSON.parse(region) as { regionId: string; countryCode: string }
       }
@@ -108,21 +107,19 @@ export const StoreProvider = ({ children }: StoreProps) => {
     )
   }
 
-  const ensureRegion = (region: Region, countryCode?: string | null) => {
+  const ensureRegion = (region: Region) => {
     if (!IS_SERVER) {
-      const { regionId, countryCode: defaultCountryCode } = getRegion() || {
+      const { regionId, countryCode } = getRegion() || {
         regionId: region.id,
         countryCode: region.countries[0].iso_2,
       }
 
-      const finalCountryCode = countryCode || defaultCountryCode
-
       if (regionId !== region.id) {
-        setRegion(region.id, finalCountryCode)
+        setRegion(region.id, countryCode)
       }
 
-      storeRegion(region.id, finalCountryCode)
-      setCountryCode(finalCountryCode)
+      storeRegion(region.id, countryCode)
+      setCountryCode(countryCode)
     }
   }
 
@@ -144,30 +141,6 @@ export const StoreProvider = ({ children }: StoreProps) => {
       localStorage.removeItem(CART_KEY)
     }
   }
-
-  const deleteRegion = () => {
-    if (!IS_SERVER) {
-      localStorage.removeItem(REGION_KEY)
-    }
-  }
-
-  // const createNewCart = async (regionId?: string) => {
-  //   await createCart.mutateAsync(
-  //     { region_id: regionId },
-  //     {
-  //       onSuccess: ({ cart }) => {
-  //         setCart(cart)
-  //         storeCart(cart.id)
-  //         ensureRegion(cart.region, cart.shipping_address?.country_code)
-  //       },
-  //       onError: (error) => {
-  //         if (process.env.NODE_ENV === "development") {
-  //           console.error(error)
-  //         }
-  //       },
-  //     }
-  //   )
-  // }
 
   const createNewCart = async (regionId?: string) => {
     const cartData: {
@@ -203,20 +176,34 @@ export const StoreProvider = ({ children }: StoreProps) => {
     )
   }
 
-  const resetCart = () => {
+  const resetCart = async () => {
     deleteCart()
 
     const savedRegion = getRegion()
 
+    const cartData: {
+      region_id?: string,
+      sales_channel_id?: string
+    } = { region_id: savedRegion?.regionId }
+
+    if (process.env.NEXT_PUBLIC_SALES_CHANNEL_ID) {
+      //check if customer is b2b
+      const { data } = await axios.get(`${MEDUSA_BACKEND_URL}/store/customers/is-b2b`, {
+        withCredentials: true
+      })
+
+      if (data.is_b2b) {
+        cartData.sales_channel_id = process.env.NEXT_PUBLIC_SALES_CHANNEL_ID
+      }
+    }
+
     createCart.mutate(
-      {
-        region_id: savedRegion?.regionId,
-      },
+      cartData,
       {
         onSuccess: ({ cart }) => {
           setCart(cart)
           storeCart(cart.id)
-          ensureRegion(cart.region, cart.shipping_address?.country_code)
+          ensureRegion(cart.region)
         },
         onError: (error) => {
           if (process.env.NODE_ENV === "development") {
@@ -227,40 +214,6 @@ export const StoreProvider = ({ children }: StoreProps) => {
     )
   }
 
-  // useEffect(() => {
-  //   const ensureCart = async () => {
-  //     const cartId = getCart()
-  //     const region = getRegion()
-
-  //     if (cartId) {
-  //       const cartRes = await medusaClient.carts
-  //         .retrieve(cartId)
-  //         .then(({ cart }) => {
-  //           return cart
-  //         })
-  //         .catch(async (_) => {
-  //           return null
-  //         })
-
-  //       if (!cartRes || cartRes.completed_at) {
-  //         deleteCart()
-  //         deleteRegion()
-  //         await createNewCart()
-  //         return
-  //       }
-
-  //       setCart(cartRes)
-  //       ensureRegion(cartRes.region)
-  //     } else {
-  //       await createNewCart(region?.regionId)
-  //     }
-  //   }
-
-  //   if (!IS_SERVER && !cart?.id) {
-  //     ensureCart()
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [])
   useEffect(() => {
     const ensureCart = async () => {
       const cartId = getCart()
@@ -308,7 +261,6 @@ export const StoreProvider = ({ children }: StoreProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  
 
   const addItem = ({
     variantId,

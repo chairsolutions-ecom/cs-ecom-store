@@ -18,7 +18,7 @@ const usePreviews = <T extends InfiniteProductPage>({
     }
 
     const products: Product[] = []
-    console.log('pages', pages)
+
     for (const page of pages) {
       products.push(...page.response.products)
     }

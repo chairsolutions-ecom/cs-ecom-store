@@ -5,6 +5,7 @@ import LineItemPrice from "@modules/common/components/line-item-price"
 import NativeSelect from "@modules/common/components/native-select"
 import Trash from "@modules/common/icons/trash"
 import Thumbnail from "@modules/products/components/thumbnail"
+import { CalculatedVariant } from "types/medusa"
 
 type ItemProps = {
   item: Omit<LineItem, "beforeInsert">
@@ -58,7 +59,11 @@ const Item = ({ item, region }: ItemProps) => {
             </button>
           </div>
           <div>
-            <LineItemPrice item={item} region={region} />
+            <LineItemPrice
+              variant={item.variant as CalculatedVariant}
+              quantity={item.quantity}
+              region={region}
+            />
           </div>
         </div>
       </div>
